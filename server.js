@@ -2,37 +2,38 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+
 const app = express();
 app.use(cors());
-app.use(bodyParser.json()); // it is require for get data from request body
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
 
 const connectToDB = async () => {
   try {
-    await mongoose.connect('mongodb://0.0.0.0:27017/mydatabase', {
+    await mongoose.connect('mongodb://localhost:27017/mydatabase', {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    console.log("connected to MongoDb");
+    console.log("Connected to MongoDB");
   } catch (error) {
-    console.log(error);
+    console.error("Error connecting to MongoDB:", error);
     process.exit(1);
   }
-}
+};
 connectToDB();
+
+// Define a route handler for the root URL
+app.get('/', (req, res) => {
+  res.send('Welcome to the API!');
+});
 
 const contactSchema = new mongoose.Schema({
   Name: String,
   MobileNumber: Number,
-  EmailAddress: String,
-
-  // Add other fields as needed
+  EmailAddress: String
 });
 
-
 const ContactModel = mongoose.model('Contact', contactSchema, 'contacts');
-
 
 app.post('/api/contacts', async (req, res) => {
   try {
@@ -40,11 +41,10 @@ app.post('/api/contacts', async (req, res) => {
     await newContact.save();
     res.status(201).json(newContact);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
 
 app.get('/api/contacts', async (req, res) => {
   try {
@@ -67,15 +67,14 @@ app.put('/api/contacts/:id', async (req, res) => {
   }
 });
 
-
-// Delete a contact
 app.delete('/api/contacts/:id', async (req, res) => {
   try {
     const { id } = req.params;
     await ContactModel.findByIdAndDelete(id);
-    res.status(204).end(); // No content, successful deletion
+    res.status(204).end();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -83,9 +82,6 @@ const orderSchema = new mongoose.Schema({
   order: String,
   orderdetails: String,
   payment: String
-  // services:String,
-  // Phno:Number
-  // Add other fields as needed
 });
 
 const OrderModel = mongoose.model('Order', orderSchema, 'orders');
@@ -104,9 +100,8 @@ const bookSchema = new mongoose.Schema({
   name: String,
   phonenumber: Number,
   email: String,
-  persons:Number,
-  date:String
-  // Add other fields as needed
+  persons: Number,
+  date: String
 });
 
 const BookModel = mongoose.model('Book', bookSchema, 'books');
@@ -126,7 +121,7 @@ const loginSchema = new mongoose.Schema({
   password: String
 });
 
-const LoginModel = mongoose.model('login', loginSchema, 'login');
+const LoginModel = mongoose.model('Login', loginSchema, 'login');
 
 app.get('/api/login', async (req, res) => {
   try {
@@ -134,12 +129,19 @@ app.get('/api/login', async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-const port = 5000;
+const port = process.env.PORT || 5000;
 app.listen(port, () => {
-  console.log("server is started successfully");
+  console.log(`Server is listening on port ${port}`);
 });
+
+
+ 
+   
+  
+  
+
 
